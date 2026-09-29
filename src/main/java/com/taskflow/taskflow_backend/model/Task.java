@@ -3,7 +3,9 @@ package com.taskflow.taskflow_backend.model;
 import jakarta.persistence.*;
 import lombok.Data;
 
+import java.util.ArrayList;
 import java.util.HashSet;
+import java.util.List;
 import java.util.Set;
 
 @Entity
@@ -36,4 +38,10 @@ public class Task {
             inverseJoinColumns = @JoinColumn(name = "tag_id")
     )
     private Set<Tag> tags = new HashSet<>();
+
+    @OneToMany(mappedBy = "task", cascade = CascadeType.ALL, orphanRemoval = true)
+    private List<SubTask> subTasks = new ArrayList<>();
+
+    @OneToMany(mappedBy = "task", cascade = CascadeType.ALL, orphanRemoval = true)
+    private List<TaskActivity> activities = new ArrayList<>();
 }

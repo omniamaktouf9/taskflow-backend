@@ -2,6 +2,7 @@ package com.taskflow.taskflow_backend.service;
 
 import com.taskflow.taskflow_backend.model.Tag;
 import com.taskflow.taskflow_backend.model.Task;
+import com.taskflow.taskflow_backend.model.TaskActivity;
 import com.taskflow.taskflow_backend.model.User;
 import com.taskflow.taskflow_backend.repository.TagRepository;
 import com.taskflow.taskflow_backend.repository.TaskRepository;
@@ -38,12 +39,23 @@ public class TaskService {
         User user = userRepository.findByEmail(email).orElseThrow();
         task.setUser(user);
         task.setTags(resolveTags(task.getTags()));
+
+        TaskActivity activity = new TaskActivity();
+        activity.setAction("Tâche créée");
+        activity.setTask(task);
+        task.getActivities().add(activity);
+
         return taskRepository.save(task);
     }
 
     public Task updateTask(Long id, Task updatedTask) {
         Task task = taskRepository.findById(id).orElse(null);
         if (task != null) {
+            ajouterActiviteSiChange(task, "Titre", task.getTitre(), updatedTask.getTitre());
+            ajouterActiviteSiChange(task, "Statut", task.getStatut(), updatedTask.getStatut());
+            ajouterActiviteSiChange(task, "Priorité", task.getPriorite(), updatedTask.getPriorite());
+            ajouterActiviteSiChange(task, "Date d'échéance", task.getDateEcheance(), updatedTask.getDateEcheance());
+
             task.setTitre(updatedTask.getTitre());
             task.setDescription(updatedTask.getDescription());
             task.setStatut(updatedTask.getStatut());
@@ -53,6 +65,17 @@ public class TaskService {
             return taskRepository.save(task);
         }
         return null;
+    }
+
+    private void ajouterActiviteSiChange(Task task, String champ, String ancienneValeur, String nouvelleValeur) {
+        if (ancienneValeur == null || !ancienneValeur.equals(nouvelleValeur)) {
+            TaskActivity activity = new TaskActivity();
+            activity.setAction(champ + " modifié");
+            activity.setAncienneValeur(ancienneValeur);
+            activity.setNouvelleValeur(nouvelleValeur);
+            activity.setTask(task);
+            task.getActivities().add(activity);
+        }
     }
 
     public void deleteTask(Long id) {
