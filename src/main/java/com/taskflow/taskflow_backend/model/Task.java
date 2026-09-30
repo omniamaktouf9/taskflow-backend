@@ -40,6 +40,7 @@ public class Task {
     private Set<Tag> tags = new HashSet<>();
 
     @OneToMany(mappedBy = "task", cascade = CascadeType.ALL, orphanRemoval = true)
+    @OrderBy("id ASC")
     private List<SubTask> subTasks = new ArrayList<>();
 
     @OneToMany(mappedBy = "task", cascade = CascadeType.ALL, orphanRemoval = true)
