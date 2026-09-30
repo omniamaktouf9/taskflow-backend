@@ -39,6 +39,7 @@ public class TaskService {
         User user = userRepository.findByEmail(email).orElseThrow();
         task.setUser(user);
         task.setTags(resolveTags(task.getTags()));
+        resolveDependsOn(task);
 
         TaskActivity activity = new TaskActivity();
         activity.setAction("Tâche créée");
@@ -62,9 +63,29 @@ public class TaskService {
             task.setPriorite(updatedTask.getPriorite());
             task.setDateEcheance(updatedTask.getDateEcheance());
             task.setTags(resolveTags(updatedTask.getTags()));
+
+            resolveDependsOn(updatedTask);
+            task.setDependsOn(updatedTask.getDependsOn());
+
             return taskRepository.save(task);
         }
         return null;
+    }
+
+    private void resolveDependsOn(Task task) {
+        if (task.getDependsOn() != null && task.getDependsOn().getId() != null) {
+            if (task.getId() != null && task.getDependsOn().getId().equals(task.getId())) {
+                throw new IllegalArgumentException("Une tâche ne peut pas dépendre d'elle-même.");
+            }
+            Task fullDependsOn = taskRepository.findById(task.getDependsOn().getId()).orElse(null);
+            task.setDependsOn(fullDependsOn);
+        } else {
+            task.setDependsOn(null);
+        }
+    }
+
+    public boolean estBloquee(Task task) {
+        return task.getDependsOn() != null && !"TERMINE".equals(task.getDependsOn().getStatut());
     }
 
     private void ajouterActiviteSiChange(Task task, String champ, String ancienneValeur, String nouvelleValeur) {

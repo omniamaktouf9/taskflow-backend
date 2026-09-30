@@ -1,5 +1,6 @@
 package com.taskflow.taskflow_backend.model;
 
+import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 import jakarta.persistence.*;
 import lombok.Data;
 
@@ -45,4 +46,9 @@ public class Task {
 
     @OneToMany(mappedBy = "task", cascade = CascadeType.ALL, orphanRemoval = true)
     private List<TaskActivity> activities = new ArrayList<>();
+
+    @ManyToOne
+    @JoinColumn(name = "depends_on_task_id")
+    @JsonIgnoreProperties({ "dependsOn", "subTasks", "activities", "tags", "user" })
+    private Task dependsOn;
 }

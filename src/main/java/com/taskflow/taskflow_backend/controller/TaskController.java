@@ -1,5 +1,6 @@
 package com.taskflow.taskflow_backend.controller;
 
+import com.taskflow.taskflow_backend.dto.TaskResponse;
 import com.taskflow.taskflow_backend.model.Task;
 import com.taskflow.taskflow_backend.service.TaskService;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -7,6 +8,7 @@ import org.springframework.security.core.Authentication;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
+import java.util.stream.Collectors;
 
 @RestController
 @RequestMapping("/api/tasks")
@@ -16,9 +18,12 @@ public class TaskController {
     private TaskService taskService;
 
     @GetMapping
-    public List<Task> getAllTasks(Authentication authentication) {
+    public List<TaskResponse> getAllTasks(Authentication authentication) {
         String email = authentication.getName();
-        return taskService.getAllTasksForUser(email);
+        List<Task> tasks = taskService.getAllTasksForUser(email);
+        return tasks.stream()
+                .map(task -> new TaskResponse(task, taskService.estBloquee(task)))
+                .collect(Collectors.toList());
     }
 
     @GetMapping("/{id}")
