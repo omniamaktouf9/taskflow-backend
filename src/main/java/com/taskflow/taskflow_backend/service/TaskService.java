@@ -13,6 +13,7 @@ import org.springframework.stereotype.Service;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
+import java.util.stream.Collectors;
 
 @Service
 public class TaskService {
@@ -39,7 +40,7 @@ public class TaskService {
         User user = userRepository.findByEmail(email).orElseThrow();
         task.setUser(user);
         task.setTags(resolveTags(task.getTags()));
-        resolveDependsOn(task);
+        task.setDependencies(resolveDependencies(task.getDependencies()));
 
         TaskActivity activity = new TaskActivity();
         activity.setAction("Tâche créée");
@@ -63,29 +64,42 @@ public class TaskService {
             task.setPriorite(updatedTask.getPriorite());
             task.setDateEcheance(updatedTask.getDateEcheance());
             task.setTags(resolveTags(updatedTask.getTags()));
-
-            resolveDependsOn(updatedTask);
-            task.setDependsOn(updatedTask.getDependsOn());
+            task.setDependencies(resolveDependencies(updatedTask.getDependencies()));
 
             return taskRepository.save(task);
         }
         return null;
     }
 
-    private void resolveDependsOn(Task task) {
-        if (task.getDependsOn() != null && task.getDependsOn().getId() != null) {
-            if (task.getId() != null && task.getDependsOn().getId().equals(task.getId())) {
-                throw new IllegalArgumentException("Une tâche ne peut pas dépendre d'elle-même.");
-            }
-            Task fullDependsOn = taskRepository.findById(task.getDependsOn().getId()).orElse(null);
-            task.setDependsOn(fullDependsOn);
-        } else {
-            task.setDependsOn(null);
+    private Set<Task> resolveDependencies(Set<Task> dependenciesFromRequest) {
+        Set<Task> resolved = new HashSet<>();
+        if (dependenciesFromRequest == null) {
+            return resolved;
         }
+        for (Task dep : dependenciesFromRequest) {
+            if (dep.getId() != null) {
+                taskRepository.findById(dep.getId()).ifPresent(resolved::add);
+            }
+        }
+        return resolved;
     }
 
     public boolean estBloquee(Task task) {
-        return task.getDependsOn() != null && !"TERMINE".equals(task.getDependsOn().getStatut());
+        if (task.getDependencies() == null || task.getDependencies().isEmpty()) {
+            return false;
+        }
+        return task.getDependencies().stream()
+                .anyMatch(dep -> !"TERMINE".equals(dep.getStatut()));
+    }
+
+    public List<String> getDependancesNonTerminees(Task task) {
+        if (task.getDependencies() == null) {
+            return List.of();
+        }
+        return task.getDependencies().stream()
+                .filter(dep -> !"TERMINE".equals(dep.getStatut()))
+                .map(Task::getTitre)
+                .collect(Collectors.toList());
     }
 
     private void ajouterActiviteSiChange(Task task, String champ, String ancienneValeur, String nouvelleValeur) {

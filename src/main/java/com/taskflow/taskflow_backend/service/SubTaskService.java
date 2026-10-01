@@ -1,7 +1,7 @@
 package com.taskflow.taskflow_backend.service;
 
-import com.taskflow.taskflow_backend.model.SubTask;
 import com.taskflow.taskflow_backend.model.Task;
+import com.taskflow.taskflow_backend.model.SubTask;
 import com.taskflow.taskflow_backend.repository.SubTaskRepository;
 import com.taskflow.taskflow_backend.repository.TaskRepository;
 import org.springframework.beans.factory.annotation.Autowired;

@@ -47,8 +47,12 @@ public class Task {
     @OneToMany(mappedBy = "task", cascade = CascadeType.ALL, orphanRemoval = true)
     private List<TaskActivity> activities = new ArrayList<>();
 
-    @ManyToOne
-    @JoinColumn(name = "depends_on_task_id")
-    @JsonIgnoreProperties({ "dependsOn", "subTasks", "activities", "tags", "user" })
-    private Task dependsOn;
+    @ManyToMany
+    @JoinTable(
+            name = "task_dependencies",
+            joinColumns = @JoinColumn(name = "task_id"),
+            inverseJoinColumns = @JoinColumn(name = "depends_on_task_id")
+    )
+    @JsonIgnoreProperties({ "dependencies", "subTasks", "activities", "tags", "user" })
+    private Set<Task> dependencies = new HashSet<>();
 }
