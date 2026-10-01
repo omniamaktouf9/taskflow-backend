@@ -1,9 +1,11 @@
 package com.taskflow.taskflow_backend.service;
 
+import com.taskflow.taskflow_backend.model.Project;
 import com.taskflow.taskflow_backend.model.Tag;
 import com.taskflow.taskflow_backend.model.Task;
 import com.taskflow.taskflow_backend.model.TaskActivity;
 import com.taskflow.taskflow_backend.model.User;
+import com.taskflow.taskflow_backend.repository.ProjectRepository;
 import com.taskflow.taskflow_backend.repository.TagRepository;
 import com.taskflow.taskflow_backend.repository.TaskRepository;
 import com.taskflow.taskflow_backend.repository.UserRepository;
@@ -27,8 +29,14 @@ public class TaskService {
     @Autowired
     private TagRepository tagRepository;
 
-    public List<Task> getAllTasksForUser(String email) {
+    @Autowired
+    private ProjectRepository projectRepository;
+
+    public List<Task> getAllTasksForUser(String email, Long projectId) {
         User user = userRepository.findByEmail(email).orElseThrow();
+        if (projectId != null) {
+            return taskRepository.findByUserAndProjectId(user, projectId);
+        }
         return taskRepository.findByUser(user);
     }
 
@@ -41,6 +49,7 @@ public class TaskService {
         task.setUser(user);
         task.setTags(resolveTags(task.getTags()));
         task.setDependencies(resolveDependencies(task.getDependencies()));
+        resolveProject(task);
 
         TaskActivity activity = new TaskActivity();
         activity.setAction("Tâche créée");
@@ -66,9 +75,21 @@ public class TaskService {
             task.setTags(resolveTags(updatedTask.getTags()));
             task.setDependencies(resolveDependencies(updatedTask.getDependencies()));
 
+            resolveProject(updatedTask);
+            task.setProject(updatedTask.getProject());
+
             return taskRepository.save(task);
         }
         return null;
+    }
+
+    private void resolveProject(Task task) {
+        if (task.getProject() != null && task.getProject().getId() != null) {
+            Project fullProject = projectRepository.findById(task.getProject().getId()).orElse(null);
+            task.setProject(fullProject);
+        } else {
+            task.setProject(null);
+        }
     }
 
     private Set<Task> resolveDependencies(Set<Task> dependenciesFromRequest) {

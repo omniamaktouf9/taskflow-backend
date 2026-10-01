@@ -1,6 +1,6 @@
 package com.taskflow.taskflow_backend.repository;
 
-import com.taskflow.taskflow_backend.model.Task;
+import com.taskflow.taskflow_backend.model.Project;
 import com.taskflow.taskflow_backend.model.User;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.stereotype.Repository;
@@ -8,7 +8,6 @@ import org.springframework.stereotype.Repository;
 import java.util.List;
 
 @Repository
-public interface TaskRepository extends JpaRepository<Task, Long> {
-    List<Task> findByUser(User user);
-    List<Task> findByUserAndProjectId(User user, Long projectId);
+public interface ProjectRepository extends JpaRepository<Project, Long> {
+    List<Project> findByUser(User user);
 }

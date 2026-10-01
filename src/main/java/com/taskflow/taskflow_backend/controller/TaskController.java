@@ -18,9 +18,12 @@ public class TaskController {
     private TaskService taskService;
 
     @GetMapping
-    public List<TaskResponse> getAllTasks(Authentication authentication) {
+    public List<TaskResponse> getAllTasks(
+            Authentication authentication,
+            @RequestParam(required = false) Long projectId
+    ) {
         String email = authentication.getName();
-        List<Task> tasks = taskService.getAllTasksForUser(email);
+        List<Task> tasks = taskService.getAllTasksForUser(email, projectId);
         return tasks.stream()
                 .map(task -> new TaskResponse(task, taskService.estBloquee(task)))
                 .collect(Collectors.toList());
