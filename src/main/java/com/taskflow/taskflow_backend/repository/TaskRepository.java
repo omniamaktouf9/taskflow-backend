@@ -11,4 +11,5 @@ import java.util.List;
 public interface TaskRepository extends JpaRepository<Task, Long> {
     List<Task> findByUser(User user);
     List<Task> findByUserAndProjectId(User user, Long projectId);
+    List<Task> findByDateEcheanceAndStatutNot(String dateEcheance, String statut);
 }
