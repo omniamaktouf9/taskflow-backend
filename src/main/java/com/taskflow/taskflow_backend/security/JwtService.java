@@ -3,6 +3,8 @@ package com.taskflow.taskflow_backend.security;
 import io.jsonwebtoken.Claims;
 import io.jsonwebtoken.Jwts;
 import io.jsonwebtoken.security.Keys;
+import jakarta.annotation.PostConstruct;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.stereotype.Service;
 
@@ -14,12 +16,18 @@ import java.util.function.Function;
 @Service
 public class JwtService {
 
-    // Clé secrète FIXE (au moins 32 caractères pour HS256)
-    private static final String SECRET_KEY_STRING = "taskflow-secret-key-super-longue-pour-jwt-2026";
+    @Value("${jwt.secret:taskflow-secret-key-super-longue-pour-jwt-2026}")
+    private String secretKeyString;
 
-    private final SecretKey secretKey = Keys.hmacShaKeyFor(SECRET_KEY_STRING.getBytes(StandardCharsets.UTF_8));
+    private SecretKey secretKey;
+
+    @PostConstruct
+    public void init() {
+        this.secretKey = Keys.hmacShaKeyFor(secretKeyString.getBytes(StandardCharsets.UTF_8));
+    }
 
     private static final long EXPIRATION_TIME = 1000 * 60 * 60 * 24; // 24 heures
+
     public String generateToken(UserDetails userDetails) {
         return Jwts.builder()
                 .subject(userDetails.getUsername())
